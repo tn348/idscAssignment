@@ -1,0 +1,207 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<br />
+<div class="row">
+    <h2>Add new File</h2>
+    <div class="col-md-3">
+        <p><input type="file" id="file" style="float:left;" /><input type="button" onclick="upload()" value="Load File" class="btn btn-primary" /></p>
+    </div>
+    <div class="col-md-1">
+        <p>
+            <select class="form-control" id="ListCUST"></select>
+        </p>
+    </div>
+    <div class="col-md-1">
+        <p>
+            <select class="form-control" id="ListSKU"></select>
+        </p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h2>Histogram</h2>
+        <p><div id="chartColumn" style="width: 100%;height:200px;"></div></p>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h2>Actual vs Forecast </h2>
+        <p><div id="chartLine" style="width: 100%;height:200px;"></div></p>
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script src="~/Scripts/canvasjs.min.js"></script>
+<script>
+    var ListDataDefault = [];
+    function upload() {
+        var fd = new FormData();
+        var file = $('#file').prop('files')[0];
+        fd.append('file', file);
+        $.ajax({
+            url: '/Home/Import',
+            data: fd,
+            type: "POST",
+            contentType: false, // Not to set any content header
+            processData: false, // Not to process data
+            success: function (result) {
+                var ListData = [];
+                for (var i = 0; i < result.Object.length; i++) {
+                    if (i > 0) {
+                        var obj = {
+                            label: result.Object[i].SKU,
+                            y: parseInt(result.Object[i].SALE),
+                        }
+                        ListData.push(obj);
+                    }
+                }
+                ListDataDefault = result.Object;
+                var html = '';
+                $.each(result.ObjectSKU, function (key, item) {
+                    html += "<option value='" + item + "'>" + item + "</option>";
+                });
+                $("#ListSKU").html(html);
+
+                var html_cust = '';
+                $.each(result.ObjectCUST, function (key, item) {
+                    html_cust += "<option value='" + item + "'>" + item + "</option>";
+                });
+                $("#ListCUST").html(html_cust);
+                // chart column
+                var chart = new CanvasJS.Chart("chartColumn", {
+                    theme: "light1", // "light2", "dark1", "dark2"
+                    animationEnabled: false, // change to true
+                    data: [
+                        {
+                            // Change type to "bar", "area", "spline", "pie",etc.
+                            type: "column",
+                            dataPoints: ListData
+                        }
+                    ]
+                });
+                chart.render();
+
+                // chart
+            },
+            error: function (errormessage) {
+
+            }
+        });
+    }
+    // change Sku
+    $("#ListSKU").off('change').on('change', function () {
+        var x = $("#ListSKU").val();
+        $("#ListCUST").val("CUST");
+        var ListData = [];
+        var ListDataLine = [];
+        for (var i = 0; i < ListDataDefault.length; i++) {
+            if (i > 0 && ListDataDefault[i].SKU === x && ListDataDefault[i].Forecast_Type === "ACTUAL") {
+                var obj = {
+                    label: ListDataDefault[i].SKU,
+                    y: parseInt(ListDataDefault[i].SALE),
+                }
+                ListData.push(obj);
+            }
+            else if (i > 0 && ListDataDefault[i].SKU === x && (ListDataDefault[i].Forecast_Type === "SES" || ListDataDefault[i].Forecast_Type === "Regression")) {
+                var obj = {
+                    label: ListDataDefault[i].CUST,
+                    y: parseFloat(ListDataDefault[i].SALE),
+                }
+                ListDataLine.push(obj);
+            }
+        }
+        // chart column
+        var chart = new CanvasJS.Chart("chartColumn", {
+            theme: "light1", // "light2", "dark1", "dark2"
+            animationEnabled: true, // change to true
+            zoomEnabled: true,
+            data: [
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    type: "column",
+                    dataPoints: ListData
+                }
+            ]
+        });
+        chart.render();
+
+        // chart line
+        var chart_line = new CanvasJS.Chart("chartLine", {
+            theme: "light1", // "light2", "dark1", "dark2"
+            animationEnabled: true, 
+            zoomEnabled: true,
+
+            data: [
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    markerSize: 5,
+                    type: "line",
+                    dataPoints: ListDataLine
+                },
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    type: "scatter",
+                    markerSize: 5,
+                    dataPoints: ListData
+                }
+            ]
+        });
+        chart_line.render();
+    });
+    // change cust
+    $("#ListCUST").off('change').on('change', function () {
+        var x = $("#ListCUST").val();
+        $("#ListSKU").val("SKU");
+        var ListData = [];
+        var ListDataLine = [];
+        for (var i = 0; i < ListDataDefault.length; i++) {
+            if (i > 0 && ListDataDefault[i].CUST === x && ListDataDefault[i].Forecast_Type === "ACTUAL") {
+                var obj = {
+                    label: ListDataDefault[i].CUST,
+                    y: parseInt(ListDataDefault[i].SALE),
+                }
+                ListData.push(obj);
+            }
+            else if (i > 0 && ListDataDefault[i].CUST === x && (ListDataDefault[i].Forecast_Type === "SES" || ListDataDefault[i].Forecast_Type === "Regression")) {
+                var obj = {
+                    label: ListDataDefault[i].CUST,
+                    y: parseFloat(ListDataDefault[i].SALE),
+                }
+                ListDataLine.push(obj);
+            }
+        }
+        var chart = new CanvasJS.Chart("chartColumn", {
+            theme: "light1", // "light2", "dark1", "dark2"
+            animationEnabled: false, // change to true
+            data: [
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    type: "column",
+                    dataPoints: ListData
+                },
+            ]
+        });
+        chart.render();
+
+        // char line
+        var chart_line = new CanvasJS.Chart("chartLine", {
+            theme: "light1", // "light2", "dark1", "dark2"
+            animationEnabled: false, // change to true
+
+            data: [
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    type: "line",
+                    dataPoints: ListDataLine
+                },
+                {
+                    // Change type to "bar", "area", "spline", "pie",etc.
+                    type: "scatter",
+                    dataPoints: ListData
+                }
+            ]
+        });
+        chart_line.render();
+    });
+</script>

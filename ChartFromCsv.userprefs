@@ -1,0 +1,13 @@
+﻿<Properties StartupConfiguration="{42909666-1DE5-4680-B1FD-92242CF8D0A5}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="ChartFromCsv/Controllers/ManageController.cs">
+    <Files>
+      <File FileName="ChartFromCsv/Controllers/ManageController.cs" Line="19" Column="34" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+</Properties>
